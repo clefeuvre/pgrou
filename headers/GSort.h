@@ -150,6 +150,8 @@ class GSort : public QGraphicsRectItem {
           */
         QSize* getSizeRect();
 
+        void changeOrientation();
+
 
 		
 	protected:
@@ -232,5 +234,11 @@ class GSort : public QGraphicsRectItem {
           *
           */
         qreal paddingTop;
+
+        /**
+          * @brief if the sort is vertical or not
+          *
+          */
+        bool vertical;
 
 };

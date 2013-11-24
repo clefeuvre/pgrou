@@ -14,6 +14,7 @@
 #include <cmath>
 #include "GSort.h"
 
+using namespace std;
 
 const int GSort::marginDefault = 10;
 const int GSort::defaultDistance = 15;
@@ -23,6 +24,7 @@ GSort::GSort(SortPtr s, GVNode n, qreal width, qreal height) : QGraphicsRectItem
     // graphic items set and Actions color
     color = makeColor();
     sizeRect = new QSize(width, height);
+    vertical = true;
 
     leftTopCorner = new QPoint(n.centerPos.x()-sizeRect->width()/2,n.centerPos.y()-sizeRect->height()/2);
 
@@ -66,13 +68,73 @@ GSort::~GSort() {
     delete text;   
 }
 
+void GSort::changeOrientation(){
+
+    cout << "testlefttopcornerX avant" << leftTopCorner->x()<<endl;
+    cout << "testlefttopcornerY avant" << leftTopCorner->y()<<endl;
+
+
+    //Swap Height and Width
+    sizeRect->transpose();
+
+    cout << "testnodeX" << node.centerPos.x()<<endl;
+    cout << "testnodeY" << node.centerPos.y()<<endl;
+
+    cout << "testsizrectW" << sizeRect->width()<<endl;
+    cout << "testsizerectH" << sizeRect->height()<<endl;
+
+    leftTopCorner->setX(node.centerPos.x() - sizeRect->width()/2);
+    leftTopCorner->setY(node.centerPos.y() - sizeRect->height()/2);
+
+    cout << "testlefttopcornerX apres" << leftTopCorner->x()<<endl;
+    cout << "testlefttopcornerY apres" << leftTopCorner->y()<<endl;
+
+    delete _rect;
+    _rect = new QGraphicsRectItem(QRectF(*leftTopCorner, *sizeRect),this);
+    setRect(QRectF(*leftTopCorner, *sizeRect));
+
+    text->setPos(leftTopCorner->x()+sizeRect->width()/2, leftTopCorner->y());
+    QSizeF textSize = text->document()->size();
+    text->setPos(text->x() - textSize.width()/2, text->y() - textSize.height());
+
+    gProcesses.clear();
+    vector<ProcessPtr> processes = sort->getProcesses();
+
+    if(vertical){
+        vertical = false;
+
+        int currPosXProcess = marginDefault+GProcess::sizeDefault/2;
+        for(ProcessPtr &p : processes){
+        gProcesses.push_back(make_shared<GProcess>(p, leftTopCorner->x() + currPosXProcess, leftTopCorner->y()+ GProcess::sizeDefault/2+ marginDefault));
+        currPosXProcess+= 2*marginDefault + GProcess::sizeDefault;
+        }
+
+    }
+    else{
+        vertical=true;
+        int currPosYProcess = marginDefault+GProcess::sizeDefault/2;
+
+        for(ProcessPtr &p : processes){
+        gProcesses.push_back(make_shared<GProcess>(p, leftTopCorner->x() + GProcess::sizeDefault/2+ marginDefault, leftTopCorner->y()+ currPosYProcess));
+        currPosYProcess+= 2*marginDefault + GProcess::sizeDefault;
+        }
+    }
+    for(GProcessPtr &gp: gProcesses){
+    gp->getDisplayItem()->setParentItem(this);
+    ProcessPtr* p = gp->getProcess();
+    (*p)->setGProcess(gp);
+    }
+
+}
+
 // mouse press event handler: start "drag"
 void GSort::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
     // ignore right click
     if (event->button() == Qt::RightButton) {
-        event->ignore();
-        return;
+        changeOrientation();
+        dynamic_cast<PHScene*>(scene())->updateActions();
+        event->accept();
     }
 
     setCursor(QCursor(Qt::ClosedHandCursor));
@@ -111,6 +173,10 @@ void GSort::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void GSort::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
+    if (event->button() == Qt::RightButton) {
+        event->ignore();
+        return;
+    }
 
     setCursor(QCursor(Qt::OpenHandCursor));
 
@@ -158,6 +224,12 @@ void GSort::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
         node.centerPos.setY(node.centerPos.y()+ initPosPoint.y() - y());
 	dynamic_cast<PHScene*>(scene())->updateActions();
     }
+
+    cout << "testnodeX apres translation" << node.centerPos.x()<<endl;
+    cout << "testnodeY apres translation" << node.centerPos.y()<<endl;
+
+    cout << "testlefttopcornerX apres translation" << leftTopCorner->x()<<endl;
+    cout << "testlefttopcornerY apres translation" << leftTopCorner->y()<<endl;
 
     event->accept();
 }
