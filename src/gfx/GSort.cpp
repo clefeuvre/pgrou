@@ -97,16 +97,28 @@ void GSort::changeOrientation(){
     QSizeF textSize = text->document()->size();
     text->setPos(text->x() - textSize.width()/2, text->y() - textSize.height());
 
-    gProcesses.clear();
-    vector<ProcessPtr> processes = sort->getProcesses();
 
     if(vertical){
         vertical = false;
 
         int currPosXProcess = marginDefault+GProcess::sizeDefault/2;
-        for(ProcessPtr &p : processes){
-        gProcesses.push_back(make_shared<GProcess>(p, leftTopCorner->x() + currPosXProcess, leftTopCorner->y()+ GProcess::sizeDefault/2+ marginDefault));
-        currPosXProcess+= 2*marginDefault + GProcess::sizeDefault;
+        int i = 0;
+
+        for(GProcessPtr &p: gProcesses){
+            cout << "process " << i <<endl;
+            p->getCenterPoint()->setX(leftTopCorner->x() + currPosXProcess);
+            p->getCenterPoint()->setY(leftTopCorner->y()+ GProcess::sizeDefault/2+ marginDefault);
+
+            int margin(GSort::marginDefault);
+            p->getMarginRect()->setPos(p->getCenterPoint()->x() -p->getSizeEllipse()->width()/2,p->getCenterPoint()->y()-p->getSizeEllipse()->height()/2);
+            p->getEllipseItem()->setRect(p->getCenterPoint()->x() -p->getSizeEllipse()->width()/2,p->getCenterPoint()->y() -p->getSizeEllipse()->height()/2, p->getSizeEllipse()->width(), p->getSizeEllipse()->height());
+            textSize = p->getText()->document()->size();
+            p->getText()->setPos(p->getCenterPoint()->x() - textSize.width()/2,p->getCenterPoint()->y()- textSize.height()/2);
+            currPosXProcess+= 2*marginDefault + GProcess::sizeDefault;
+            cout << "center x "<< p->getCenterPoint()->x() <<endl;
+            cout << "center y "<< p->getCenterPoint()->y() <<endl;
+            cout << "ellipse center x "<< p->getEllipseItem()->pos().x() <<endl;
+            cout << "ellipse center y "<< p->getEllipseItem()->pos().y() <<endl;
         }
 
     }
@@ -114,16 +126,19 @@ void GSort::changeOrientation(){
         vertical=true;
         int currPosYProcess = marginDefault+GProcess::sizeDefault/2;
 
-        for(ProcessPtr &p : processes){
-        gProcesses.push_back(make_shared<GProcess>(p, leftTopCorner->x() + GProcess::sizeDefault/2+ marginDefault, leftTopCorner->y()+ currPosYProcess));
-        currPosYProcess+= 2*marginDefault + GProcess::sizeDefault;
+        for(GProcessPtr &p: gProcesses){
+            p->getCenterPoint()->setX(leftTopCorner->x() + GProcess::sizeDefault/2+ marginDefault);
+            p->getCenterPoint()->setY(leftTopCorner->y()+ currPosYProcess);
+
+            int margin(GSort::marginDefault);
+            p->getMarginRect()->setPos(p->getCenterPoint()->x() -p->getSizeEllipse()->width()/2,p->getCenterPoint()->y()-p->getSizeEllipse()->height()/2);
+            p->getEllipseItem()->setRect(p->getCenterPoint()->x() -p->getSizeEllipse()->width()/2,p->getCenterPoint()->y() -p->getSizeEllipse()->height()/2, p->getSizeEllipse()->width(), p->getSizeEllipse()->height());
+            textSize = p->getText()->document()->size();
+            p->getText()->setPos(p->getCenterPoint()->x() - textSize.width()/2,p->getCenterPoint()->y()- textSize.height()/2);
+            currPosYProcess+= 2*marginDefault + GProcess::sizeDefault;
         }
     }
-    for(GProcessPtr &gp: gProcesses){
-    gp->getDisplayItem()->setParentItem(this);
-    ProcessPtr* p = gp->getProcess();
-    (*p)->setGProcess(gp);
-    }
+    dynamic_cast<PHScene*>(scene())->updateActions();
 
 }
 
