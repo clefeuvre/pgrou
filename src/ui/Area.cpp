@@ -315,6 +315,9 @@ void Area::saveEdit(int del){
             emit makeTempXML();
         }
 
+//TODO understand why importXMLMetadata after rendering makes actions mad when updating text area... Bug in updating actions ?
+        this->mainWindow->importXMLMetadata(fileXML);
+
         // render graph
         PHPtr myPHPtr = PHIO::parseFile(phFile);
         this->myArea->setPHPtr(myPHPtr);
@@ -342,8 +345,6 @@ void Area::saveEdit(int del){
         this->setOldText();
 
         newph.remove();
-
-        this->mainWindow->importXMLMetadata(fileXML);
     }
     catch(textAreaEmpty_exception & e){
 
